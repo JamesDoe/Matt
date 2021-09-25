@@ -22,6 +22,8 @@
             position: relative;
         }
 
+        .button,
+        select,
         input {
             font-size: 18px;
             padding: 13px 15px;
@@ -43,6 +45,7 @@
         }
 
         .input_filled~.material-field-label,
+        select:focus~.material-field-label,
         input:focus~.material-field-label {
             color: dodgerblue;
             transform: scale(.75) translate(-13px, -30px);
@@ -69,44 +72,55 @@
 <body>
     <div id="app">
 
-        {{ {dimensions, peripherals, material} }}
+        {{ {dimensions_lwh, peripherals, material} }}
         <div style="display: flex;">
             <div class="material-field">
-                <input size="5" v-model="dimensions[0]" :class="{input_filled:dimensions[0]}" type="text">
+                <input size="5" v-model="dimensions_lwh[0]" :class="{input_filled:dimensions_lwh[0]}" type="text">
                 <label class="material-field-label">Length</label>
             </div>
             <div class="material-field">
-                <input v-model="dimensions[1]" size="5" :class="{input_filled:dimensions[1]}" type="text">
+                <input v-model="dimensions_lwh[1]" size="5" :class="{input_filled:dimensions_lwh[1]}" type="text">
                 <label class="material-field-label">Width</label>
             </div>
             <div class="material-field">
-                <input v-model="dimensions[2]" size="5" :class="{input_filled:dimensions[2]}" type="text">
+                <input v-model="dimensions_lwh[2]" size="5" :class="{input_filled:dimensions_lwh[2]}" type="text">
                 <label class="material-field-label">Height</label>
             </div>
         </div>
         <div class="material-field">
-            <input v-model="material" class="material-field-input" type="text">
+            <input v-model="material"  :class="{input_filled:material}" type="text">
             <label class="material-field-label">Material</label>
         </div>
         <!-- <div class="material-field">
             <input class="material-field-input" type="text">
             <label class="material-field-label">Your name</label>
+            <label class="material-field-label">Material</label>
         </div> -->
+        <div class="material-field">
+            <select style="display:inline-block" :class="{input_filled:peripheral}" v-model="peripheral">
+                <option v-for="p in Peripherals">
+                    {{p}}
+                </option>
+            </select>
+            <label class="material-field-label">Peripherals</label>
+            <div @click="peripherals.push(peripheral); peripheral = null" style="display: inline-block;" class="button">Add Peripheral</div>
+        </div>
     </div>
 </body>
 
 <script>
 
     const
-        Peripherals = [],
+        Peripherals = ['Desktop', 'Laptop'],
         Materials = [],
         app = new Vue({
             el: "#app",
             data: {
-                dimensions: [], // h,w,l
+                dimensions_lwh: [], // h,w,l
                 devices: [],
                 material: null,
                 peripherals: [],
+                peripheral: null,
                 Materials,
                 Peripherals,
             }
