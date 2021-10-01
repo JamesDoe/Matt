@@ -80,20 +80,30 @@
     <div id="app">
 
 
-        
+
 
         <svg :width="20+(room_dimensions_lwh[1]||1)*10" :height="20+(room_dimensions_lwh[0]||1)*10">
             <rect style="fill: white; stroke: black;" :width="(room_dimensions_lwh[1]||1)*10"
                 :height="(room_dimensions_lwh[0]||1)*10" />
-            <rect @mousemove="table_dimensions_lw[2]?$event.target.style.transform=`translate(${$event.pageX-table_dimensions_lw[2][0]}px,${$event.pageY-table_dimensions_lw[2][1]}px)`:''"
+            <rect
+                @mousemove="table_dimensions_lw[2]?$event.target.style.transform=`translate(${$event.pageX-table_dimensions_lw[2][0]}px,${$event.pageY-table_dimensions_lw[2][1]}px)`:'';$forceUpdate()"
                 @mouseout="table_dimensions_lw[2] = 0;" @mouseup="table_dimensions_lw[2] = 0;"
-                @mousedown="table_dimensions_lw[2] = [$event.pageX, $event.pageY];"
-                :x="(((room_dimensions_lwh[1]||1)/2)*10)-(((table_dimensions_lw[1]||1)*10)/2)"
+                @mousedown="table_dimensions_lw[2] = [$event.pageX, $event.pageY, $event.target];" :x="table_loc_x"
                 :y="(((room_dimensions_lwh[0]||1)/2)*10)-(((table_dimensions_lw[0]||1)*10)/2)"
                 v-if="table_dimensions_lw[0]||table_dimensions_lw[1]" style="fill: white; stroke: black;"
                 :width="(table_dimensions_lw[1]||1)*10" :height="(table_dimensions_lw[0]||1)*10" />
+            <g v-if="table_dimensions_lw.length>1">
+                <svg v-for="m,i in no_of_mics" :x="table_loc_x+(i*12)"
+                    :y="(((room_dimensions_lwh[0]||1)/2)*10)-(((table_dimensions_lw[0]||1)*10)/2)"
+                    xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24">
+                    <path
+                        d="M12 2c1.103 0 2 .897 2 2v7c0 1.103-.897 2-2 2s-2-.897-2-2v-7c0-1.103.897-2 2-2zm0-2c-2.209 0-4 1.791-4 4v7c0 2.209 1.791 4 4 4s4-1.791 4-4v-7c0-2.209-1.791-4-4-4zm8 9v2c0 4.418-3.582 8-8 8s-8-3.582-8-8v-2h2v2c0 3.309 2.691 6 6 6s6-2.691 6-6v-2h2zm-7 13v-2h-2v2h-4v2h10v-2h-4z" />
+                </svg>
+                <!-- <text style="" x=30 y=50>{{table_dimensions_lw}}</text>
+                <text style="" x=30 y=30>{{table_loc_x}}</text> -->
+            </g>
         </svg>
-        {{(room_dimensions_lwh[1]||1)/2}}
+        Number of mics: {{no_of_mics}} {{table_dimensions_lw}}
         <!-- <svg :width="width + margin.left + margin.right" :height="height + margin.top + margin.bottom"
 :viewBox="`0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`"
 xmlns="http://www.w3.org/2000/svg">
@@ -145,6 +155,7 @@ xmlns="http://www.w3.org/2000/svg">
                         type="text">
                     <label class="material-field-label">Height</label>
                 </div>
+
             </div>
         </div>
 
@@ -206,6 +217,13 @@ xmlns="http://www.w3.org/2000/svg">
             <div @click="peripherals.push(peripheral); peripheral = null" style="display: inline-block;" class="button">
                 Add Peripheral</div>
         </div>
+
+        <div>
+            <div class="material-field">
+                <input v-model="feet_betw_mics" size="9" :class="{input_filled:feet_betw_mics}" type="text">
+                <label class="material-field-label">Feet Between Mics</label>
+            </div>
+        </div>
     </div>
 </body>
 
@@ -223,11 +241,24 @@ xmlns="http://www.w3.org/2000/svg">
                 room_dimensions_lwh: [12, 50], // h,w,l
                 table_dimensions_lw: [5, 5], // h,w,l
                 devices: [],
+                feet_betw_mics: 5,
                 material: null,
                 peripherals: [],
                 peripheral: null,
                 Materials,
                 Peripherals,
+
+            },
+            computed: {
+
+                no_of_mics() {
+                    if (this.table_dimensions_lw.length > 1) return Math.round(Math.max(...this.table_dimensions_lw) / this.feet_betw_mics) || 1;
+                    return 0
+                },
+                table_loc_x() {
+
+                    return  (((this.room_dimensions_lwh[1] || 1) / 2) * 10) - (((this.table_dimensions_lw[1] || 1) * 10) / 2)
+                }
             }
         });
 
