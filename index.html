@@ -18,7 +18,7 @@
 
     <style>
         .material-field {
-            margin: 1em;
+            /* margin: 1em; */
             position: relative;
         }
 
@@ -31,7 +31,7 @@
             width: calc("100% - 30px");
             display: block;
             border-radius: 5px;
-            border: 1px solid gray;
+            border: 2px solid gray;
         }
 
         input:focus {
@@ -71,25 +71,107 @@
 
 <body>
     <div id="app">
+        <svg :width="20+(room_dimensions_lwh[1]||1)*10" :height="20+(room_dimensions_lwh[0]||1)*10">
+            <rect style="fill: white; stroke: black;" :width="(room_dimensions_lwh[1]||1)*10" :height="(room_dimensions_lwh[0]||1)*10" />
+            <rect :x="(((room_dimensions_lwh[1]||1)/2)*10)-(((table_dimensions_lw[1]||1)*10)/2)" :y="(((room_dimensions_lwh[0]||1)/2)*10)-(((table_dimensions_lw[0]||1)*10)/2)" v-if="table_dimensions_lw[0]||table_dimensions_lw[1]" style="fill: white; stroke: black;" :width="(table_dimensions_lw[1]||1)*10" :height="(table_dimensions_lw[0]||1)*10" />
+        </svg>
+        {{(room_dimensions_lwh[1]||1)/2}}
+        <!-- <svg :width="width + margin.left + margin.right" :height="height + margin.top + margin.bottom"
+:viewBox="`0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`"
+xmlns="http://www.w3.org/2000/svg">
 
-        {{ {dimensions_lwh, peripherals, material} }}
-        <div style="display: flex;">
-            <div class="material-field">
-                <input size="5" v-model="dimensions_lwh[0]" :class="{input_filled:dimensions_lwh[0]}" type="text">
-                <label class="material-field-label">Length</label>
-            </div>
-            <div class="material-field">
-                <input v-model="dimensions_lwh[1]" size="5" :class="{input_filled:dimensions_lwh[1]}" type="text">
-                <label class="material-field-label">Width</label>
-            </div>
-            <div class="material-field">
-                <input v-model="dimensions_lwh[2]" size="5" :class="{input_filled:dimensions_lwh[2]}" type="text">
-                <label class="material-field-label">Height</label>
+<line stroke="whitesmoke" v-for="t ,i in candles_x.ticks()" :x1="candles_x(new Date(t))"
+    :x2="candles_x(new Date(t))" y1="50" :y2="height" />
+<line stroke="whitesmoke" v-for="t in candles_y.ticks()" :x1="0" :x2="width" :y1="candles_y(t)"
+    :y2="candles_y(t)" />
+
+<rect v-for="dp in ohlc" :x="candles_x(new Date(dp[0]))-.5" :y="candles_y(dp[2])" width="1"
+    :height="Math.abs(candles_y(dp[2])-candles_y(dp[3]))" />
+
+
+<g :class="candles_y(dp[1])-candles_y(dp[4])<0?'bearCandle':'bullCandle'" v-for="dp in ohlc"
+    @mouseover="c_data = dp" @mouseout="c_data = null">
+    <rect :x="candles_x(new Date(dp[0]))-.5" :y="candles_y(dp[2])" width="1"
+        :height="Math.abs(candles_y(dp[2])-candles_y(dp[3]))" />
+    <rect :x="candles_x(new Date(dp[0]))-1.5" :y="candles_y(Math.max(dp[1],dp[4]))" width="3"
+        :height="Math.abs(candles_y(dp[1])-candles_y(dp[4]))" />
+</g>
+
+
+<text style="text-anchor: middle; font-size:.5em" v-for="t ,i in candles_x.ticks()"
+    :x="candles_x(new Date(t))" :y="20"
+    class="small">{{new Date(t).toLocaleString('en-US', {month:'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric'})}}</text>
+<text style="dominant-baseline: central" v-for="t in candles_y.ticks()" :x="width+30" :y=candles_y(t)
+    class="small">{{t}}</text>
+
+
+<path v-for="i,idx in indicators" :style="`fill:none; stroke: ${colors[idx]}`"
+    :d='indicator_line(d3.zip(ohlc.slice(i[0]-1).map(e=>e[0]),$root[`calculate_${i[1]}`](ohlc.map(e=>e[4]),i[0])))'>
+</path>
+</svg> -->
+        <div>
+            <div style="margin: 1em">Room Size</div>
+            <div style="display: flex;">
+                <div class="material-field">
+                    <input size="3" v-model="room_dimensions_lwh[0]" :class="{input_filled:room_dimensions_lwh[0]}"
+                    type="text">
+                    <label class="material-field-label">Length</label>
+                </div>
+                <div class="material-field">
+                    <input v-model="room_dimensions_lwh[1]" size="3" :class="{input_filled:room_dimensions_lwh[1]}"
+                    type="text">
+                    <label class="material-field-label">Width</label>
+                </div>
+                <div class="material-field">
+                    <input v-model="room_dimensions_lwh[2]" size="3" :class="{input_filled:room_dimensions_lwh[2]}"
+                    type="text">
+                    <label class="material-field-label">Height</label>
+                </div>
             </div>
         </div>
+        
+        
+        <div>
+            <div style="margin: 1em">Table Size</div>
+            <div style="display: flex;">
+                <div class="material-field">
+                    <input size="3" v-model="table_dimensions_lw[0]" :class="{input_filled:table_dimensions_lw[0]}"
+                        type="text">
+                    <label class="material-field-label">Length</label>
+                </div>
+                <div class="material-field">
+                    <input v-model="table_dimensions_lw[1]" size="3" :class="{input_filled:table_dimensions_lw[1]}"
+                        type="text">
+                    <label class="material-field-label">Width</label>
+                </div>
+            </div>
+        </div>
+
+
         <div class="material-field">
-            <input v-model="material"  :class="{input_filled:material}" type="text">
-            <label class="material-field-label">Material</label>
+            <select style="display:inline-block" :class="{input_filled:peripheral}">
+                <option v-for="m in ['Plaster', 'Sheetrock', 'Wood']">
+                    {{m}}
+                </option>
+            </select>
+            <label class="material-field-label">Wall Material</label>
+        </div>
+        <div class="material-field">
+            <select style="display:inline-block" :class="{input_filled:peripheral}">
+                <option v-for="m in ['Plaster', 'Sheetrock', 'Wood']">
+                    {{m}}
+                </option>
+            </select>
+            <label class="material-field-label">Ceiling Material</label>
+        </div>
+
+        <div class="material-field">
+            <input v-model="material" :class="{input_filled:material}" type="text">
+            <label class="material-field-label">Distance from Display</label>
+        </div>
+        <div class="material-field">
+            <input v-model="material" :class="{input_filled:material}" type="text">
+            <label class="material-field-label">Table L/W</label>
         </div>
         <!-- <div class="material-field">
             <input class="material-field-input" type="text">
@@ -103,7 +185,8 @@
                 </option>
             </select>
             <label class="material-field-label">Peripherals</label>
-            <div @click="peripherals.push(peripheral); peripheral = null" style="display: inline-block;" class="button">Add Peripheral</div>
+            <div @click="peripherals.push(peripheral); peripheral = null" style="display: inline-block;" class="button">
+                Add Peripheral</div>
         </div>
     </div>
 </body>
@@ -116,7 +199,8 @@
         app = new Vue({
             el: "#app",
             data: {
-                dimensions_lwh: [], // h,w,l
+                room_dimensions_lwh: [], // h,w,l
+                table_dimensions_lw: [], // h,w,l
                 devices: [],
                 material: null,
                 peripherals: [],
