@@ -16,7 +16,14 @@
         integrity="sha384-cPwlPLvBTa3sKAgddT6krw0cJat7egBga3DJepJyrLl4Q9/5WLra3rrnMcyTyOnh"
         crossorigin="anonymous"></script>
 
+
+
     <style>
+        /* https://stackoverflow.com/questions/6711610/how-to-set-transform-origin-in-svg */
+        svg * {
+            transform-box: fill-box;
+        }
+
         .material-field {
             /* margin: 1em; */
             position: relative;
@@ -71,9 +78,20 @@
 
 <body>
     <div id="app">
+
+
+        
+
         <svg :width="20+(room_dimensions_lwh[1]||1)*10" :height="20+(room_dimensions_lwh[0]||1)*10">
-            <rect style="fill: white; stroke: black;" :width="(room_dimensions_lwh[1]||1)*10" :height="(room_dimensions_lwh[0]||1)*10" />
-            <rect :x="(((room_dimensions_lwh[1]||1)/2)*10)-(((table_dimensions_lw[1]||1)*10)/2)" :y="(((room_dimensions_lwh[0]||1)/2)*10)-(((table_dimensions_lw[0]||1)*10)/2)" v-if="table_dimensions_lw[0]||table_dimensions_lw[1]" style="fill: white; stroke: black;" :width="(table_dimensions_lw[1]||1)*10" :height="(table_dimensions_lw[0]||1)*10" />
+            <rect style="fill: white; stroke: black;" :width="(room_dimensions_lwh[1]||1)*10"
+                :height="(room_dimensions_lwh[0]||1)*10" />
+            <rect @mousemove="table_dimensions_lw[2]?$event.target.style.transform=`translate(${$event.pageX-table_dimensions_lw[2][0]}px,${$event.pageY-table_dimensions_lw[2][1]}px)`:''"
+                @mouseout="table_dimensions_lw[2] = 0;" @mouseup="table_dimensions_lw[2] = 0;"
+                @mousedown="table_dimensions_lw[2] = [$event.pageX, $event.pageY];"
+                :x="(((room_dimensions_lwh[1]||1)/2)*10)-(((table_dimensions_lw[1]||1)*10)/2)"
+                :y="(((room_dimensions_lwh[0]||1)/2)*10)-(((table_dimensions_lw[0]||1)*10)/2)"
+                v-if="table_dimensions_lw[0]||table_dimensions_lw[1]" style="fill: white; stroke: black;"
+                :width="(table_dimensions_lw[1]||1)*10" :height="(table_dimensions_lw[0]||1)*10" />
         </svg>
         {{(room_dimensions_lwh[1]||1)/2}}
         <!-- <svg :width="width + margin.left + margin.right" :height="height + margin.top + margin.bottom"
@@ -114,23 +132,23 @@ xmlns="http://www.w3.org/2000/svg">
             <div style="display: flex;">
                 <div class="material-field">
                     <input size="3" v-model="room_dimensions_lwh[0]" :class="{input_filled:room_dimensions_lwh[0]}"
-                    type="text">
+                        type="text">
                     <label class="material-field-label">Length</label>
                 </div>
                 <div class="material-field">
                     <input v-model="room_dimensions_lwh[1]" size="3" :class="{input_filled:room_dimensions_lwh[1]}"
-                    type="text">
+                        type="text">
                     <label class="material-field-label">Width</label>
                 </div>
                 <div class="material-field">
                     <input v-model="room_dimensions_lwh[2]" size="3" :class="{input_filled:room_dimensions_lwh[2]}"
-                    type="text">
+                        type="text">
                     <label class="material-field-label">Height</label>
                 </div>
             </div>
         </div>
-        
-        
+
+
         <div>
             <div style="margin: 1em">Table Size</div>
             <div style="display: flex;">
@@ -192,15 +210,18 @@ xmlns="http://www.w3.org/2000/svg">
 </body>
 
 <script>
-
+    function drag(e) {
+        console.log(e)
+    }
     const
         Peripherals = ['Desktop', 'Laptop'],
         Materials = [],
         app = new Vue({
             el: "#app",
             data: {
-                room_dimensions_lwh: [], // h,w,l
-                table_dimensions_lw: [], // h,w,l
+                console,
+                room_dimensions_lwh: [12, 50], // h,w,l
+                table_dimensions_lw: [5, 5], // h,w,l
                 devices: [],
                 material: null,
                 peripherals: [],
