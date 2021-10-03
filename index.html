@@ -17,16 +17,33 @@
         crossorigin="anonymous"></script>
 
 
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css"
+        integrity="sha512-YWzhKL2whUzgiheMoBFwW8CKV4qpHQAEuvilg9FAn5VJUDwKZZxkJNuGM4XkWuk94WCrrwslk8yWNGmY1EduTA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         /* https://stackoverflow.com/questions/6711610/how-to-set-transform-origin-in-svg */
         svg * {
             transform-box: fill-box;
         }
 
+
         .material-field {
             /* margin: 1em; */
             position: relative;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 2px;
+            display: inline-block;
+            /* height: 300px; */
+            /* margin: 1rem; */
+            position: relative;
+            padding: .62em;
+        }
+
+        .card:hover {
+            box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
         }
 
         .button,
@@ -78,17 +95,36 @@
 
 <body>
     <div id="app">
+        <div id="div1" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
 
+        <img id="drag1" src="img_logo.gif" draggable="true" ondragstart="drag(event)" width="336" height="69">
 
+        <div>
 
+            <i ondragstart="drag(event)" style="padding: 3px"
+                v-for='icon_type in ["fas fa-laptop 3x","fas fa-tv 3x","fas fa-microphone","fas fa-mobile-alt","fas fa-video","fas fa-camera","fas fa-phone-alt","fas fa-headphones"]'
+                draggable=true :class="icon_type">
+
+            </i>
+
+        </div>
+        <div>
+
+            <div :class="table_w" ondrop="drop(event)" ondragover="allowDrop(event)"
+                :style="`border: 2px solid black; width:${table_w}px; height:${table_h}px`">&nbsp;
+                <!-- {{presentation_sources}} -->
+                <!-- <i @click="console.log($event.clientX)" :style="`position: absolute;transform:translate(${p[0]}px,${p[1]}px)`" v-for="p in presentation_sources" :class="p[2]"></i> -->
+                <i draggable="true" ondragstart="drag({coord_array:p})" :style="`position: absolute;left: ${p[0]}px; top: ${p[1]}px`" v-for="p in presentation_sources" :class="p[2]"></i>
+            </div>
+        </div>
 
         <svg :width="20+(room_dimensions_lwh[1]||1)*10" :height="20+(room_dimensions_lwh[0]||1)*10">
             <rect style="fill: white; stroke: black;" :width="(room_dimensions_lwh[1]||1)*10"
                 :height="(room_dimensions_lwh[0]||1)*10" />
             <rect
-                @mousemove="table_dimensions_lw[2]?$event.target.style.transform=`translate(${$event.pageX-table_dimensions_lw[2][0]}px,${$event.pageY-table_dimensions_lw[2][1]}px)`:'';$forceUpdate()"
+                @mousemove="table_dimensions_lw[2]?$event.target.style.transform=`translate(${$event.clientX-table_dimensions_lw[2][0]}px,${$event.clientY-table_dimensions_lw[2][1]}px)`:'';$forceUpdate()"
                 @mouseout="table_dimensions_lw[2] = 0;" @mouseup="table_dimensions_lw[2] = 0;"
-                @mousedown="table_dimensions_lw[2] = [$event.pageX, $event.pageY, $event.target];" :x="table_loc_x"
+                @mousedown="table_dimensions_lw[2] = [$event.clientX, $event.clientY, $event.target];" :x="table_loc_x"
                 :y="(((room_dimensions_lwh[0]||1)/2)*10)-(((table_dimensions_lw[0]||1)*10)/2)"
                 v-if="table_dimensions_lw[0]||table_dimensions_lw[1]" style="fill: white; stroke: black;"
                 :width="(table_dimensions_lw[1]||1)*10" :height="(table_dimensions_lw[0]||1)*10" />
@@ -228,8 +264,26 @@ xmlns="http://www.w3.org/2000/svg">
 </body>
 
 <script>
-    function drag(e) {
-        console.log(e)
+    function allowDrop(ev) {
+        ev.preventDefault();
+    }
+
+    function drag(ev) {
+        if(ev.coord_array)return console.log(ev.coord_array)
+        app.dragged_object = ev;
+        ev.dataTransfer.setData("obj", ev.target.className);
+    }
+
+    function drop(ev) {
+        ev.preventDefault();
+        let el  = ev.dataTransfer.getData("obj");
+        console.log(app.dragged_object)
+        // console.log(ev.clientX-(app.dragged_object.target.offsetWidth/2), ev.clientY-(app.dragged_object.target.offsetHeight/2), ev.dataTransfer.getData("obj"), ev.target.offsetTop);
+        console.log(ev.clientX, ev.clientY, ev.dataTransfer.getData("obj"), ev.target.offsetTop);
+        app.presentation_sources.push([ev.clientX, ev.clientY, ev.dataTransfer.getData("obj")])
+        ev.dataTransfer.setData("obj", app.dragged_object = null);
+        //   var data = ev.dataTransfer.getData("text");
+        //   ev.target.appendChild(document.getElementById(data));
     }
     const
         Peripherals = ['Desktop', 'Laptop'],
@@ -238,6 +292,7 @@ xmlns="http://www.w3.org/2000/svg">
             el: "#app",
             data: {
                 console,
+                dragged_object: null,
                 room_dimensions_lwh: [12, 50], // h,w,l
                 table_dimensions_lw: [5, 5], // h,w,l
                 devices: [],
@@ -247,7 +302,7 @@ xmlns="http://www.w3.org/2000/svg">
                 peripheral: null,
                 Materials,
                 Peripherals,
-
+                presentation_sources:[]
             },
             computed: {
 
@@ -257,7 +312,15 @@ xmlns="http://www.w3.org/2000/svg">
                 },
                 table_loc_x() {
 
-                    return  (((this.room_dimensions_lwh[1] || 1) / 2) * 10) - (((this.table_dimensions_lw[1] || 1) * 10) / 2)
+                    return (((this.room_dimensions_lwh[1] || 1) / 2) * 10) - (((this.table_dimensions_lw[1] || 1) * 10) / 2)
+                },
+                table_w() {
+                    return 20 + (this.room_dimensions_lwh[1] || 1) * 10;
+                    // return  :width="20+(room_dimensions_lwh[1]||1)*10" :height="20+(room_dimensions_lwh[0]||1)*10">
+                },
+                table_h() {
+                    return 20 + (this.room_dimensions_lwh[0] || 1) * 10;
+                    // return  :width="20+(room_dimensions_lwh[1]||1)*10" :height="20+(room_dimensions_lwh[0]||1)*10">
                 }
             }
         });
